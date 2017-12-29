@@ -12,7 +12,8 @@ import {
   WebView
 } from 'react-native';
 import { WebBrowser } from 'expo';
-
+import { AreaChart } from 'react-native-svg-charts'
+import * as shape from 'd3-shape'
 import { MonoText } from '../components/StyledText';
 
 const launchscreenBg = require('../assets/images/launchscreen-bg.png');
@@ -28,6 +29,20 @@ export default class HomeScreen extends React.Component {
     this.state = {
       priceData: null
     };
+
+    // fetch historical price (moving avg. for x days.)
+    var data = []; // populate this with data from request below.
+    fetch('https://data.ripple.com/v2/exchanges/USD+rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B/XRP?interval=1day&format=json&start=2017-12-20T00:00:00Z')
+    .then(response => {
+      return response.json();
+    }).then(responseJson => {
+      for (var i = 0; i < responseJson.exchanges.length; i++) {
+        data[i] = responseJson.exchanges[i].close;
+      }
+    }).catch(error => {
+      console.log('error fetching historical prices: ' + error);
+    })
+    // fetch price
     fetch('https://b5bca68a.ngrok.io/api/ripple/getPrice', {
       method: 'POST',
       headers: {
