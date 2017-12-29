@@ -97,7 +97,7 @@ export default class HomeScreen extends React.Component {
               </Text>
 
                 <Text style={styles.getStartedText}>
-                  Current balance: 56.5 XRP ($76.84). Up $5.50 from 2 days ago.
+                  Current balance: 56.5 XRP ($76.84). Up $5.50 from 2 days ago. TODO: Use API for this.
               </Text>
             </View>
 
