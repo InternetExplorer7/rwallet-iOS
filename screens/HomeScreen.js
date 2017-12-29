@@ -27,18 +27,24 @@ export default class HomeScreen extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      priceData: null
+      priceData: null,
+      data: []
     };
 
     // fetch historical price (moving avg. for x days.)
-    var data = []; // populate this with data from request below.
-    fetch('https://data.ripple.com/v2/exchanges/USD+rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B/XRP?interval=1day&format=json&start=2017-12-20T00:00:00Z')
+    var data = []; // populate this with data from historical prices.
+    fetch('https://data.ripple.com/v2/exchanges/USD+rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B/XRP?interval=1day&format=json&start=2016-12-20T00:00:00Z')
     .then(response => {
       return response.json();
     }).then(responseJson => {
+      console.log('start: ' + JSON.stringify(responseJson.exchanges[0]));
       for (var i = 0; i < responseJson.exchanges.length; i++) {
-        data[i] = responseJson.exchanges[i].close;
+        data[i] = parseFloat(responseJson.exchanges[i].close);
       }
+      data = data.reverse();
+    }).then(() => {
+      this.setState({data: data});
+      console.log('this state: ' + this.state.data);
     }).catch(error => {
       console.log('error fetching historical prices: ' + error);
     })
@@ -84,19 +90,20 @@ export default class HomeScreen extends React.Component {
 
               {this.showUpOrDown()}
 
-              <WebView
-                source={{url: 'https://xrpcharts.ripple.com/#/markets/XRP/USD:rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B?interval=5m&range=1d&type=line'}}
-                style={{marginTop: 20, height: height / 2, width: width}}
-              />
+              {this.showGraphWhenAvail()}
 
               <Text style={styles.getStartedText}>
-                Change this text and your app will automatically reload.
+                Price over time for the last 12 months.
+              </Text>
+
+                <Text style={styles.getStartedText}>
+                  Current balance: 56.5 XRP ($76.84). Up $5.50 from 2 days ago.
               </Text>
             </View>
 
             <View style={styles.helpContainer}>
               <TouchableOpacity onPress={this._handleHelpPress} style={styles.helpLink}>
-                <Text style={styles.helpLinkText}>Help, it didn’t automatically reload!</Text>
+                <Text style={styles.helpLinkText}>Recent transactions</Text>
               </TouchableOpacity>
             </View>
           </ScrollView>
@@ -110,6 +117,23 @@ export default class HomeScreen extends React.Component {
           </View>
       </View>
     );
+  }
+
+  showGraphWhenAvail() {
+    if (this.state.data !== null) {
+      return (<AreaChart
+          style={ { height: height / 4, width: width - 40 } }
+          dataPoints={ this.state.data }
+          contentInset={ { top: 30, bottom: 30 } }
+          curve={shape.curveNatural}
+          svg={{
+            fill: 'rgba(134, 65, 244, 0.2)',
+            stroke: 'rgb(134, 65, 244)',
+          }}
+        />)
+    } else {
+      return (<Text style={styles.getStartedText}> Loading Graph.</Text>)
+    }
   }
 
   showUpOrDown() {
